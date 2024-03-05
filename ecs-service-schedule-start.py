@@ -7,22 +7,27 @@ def get_cluster_name_with_tag(tag_key, tag_value):
         print("Buscando clusters...")
         paginator = ecs_client.get_paginator('list_clusters')
         response_iterator = paginator.paginate()
+        cluster_names=[]
 
         for page in response_iterator:
             cluster_arns = page['clusterArns']
-            for arn in cluster_arns:
-                cluster_info = ecs_client.describe_clusters(
-                    clusters=[arn],
-                    include=['TAGS']
-                )
-                cluster_tags = cluster_info['clusters'][0].get('tags', [])
-                print(f"Cluster ARN: {arn}")
-                print(f"Cluster tags: {cluster_tags}")
+            cluster_info = ecs_client.describe_clusters(
+                clusters=cluster_arns,
+                include=['TAGS']
+            )
+            print(cluster_info)
+            for cluster in cluster_info['clusters']:
+                name = cluster['clusterName']
+                cluster_tags = cluster.get('tags', [])
                 
                 # Verifica se a tag está presente e tem o valor correto
                 if any(tag['key'] == tag_key and tag['value'] == tag_value for tag in cluster_tags):
+                    print(f"Cluster Name: {name}")
+                    print(f"Cluster tags: {cluster_tags}")
                     print(f"Cluster encontrado com a tag '{tag_key}={tag_value}'!")
-                    return cluster_info['clusters'][0]['clusterName']
+                    cluster_names.append(name)
+                print(cluster_names)
+            return cluster_names
         
         print(f"Nenhum cluster encontrado com a tag '{tag_key}={tag_value}'.")
         return None
@@ -80,19 +85,20 @@ def retrieve_replica_counts_from_dynamodb():
 def lambda_handler(event, context):
     tag_key = 'Start'
     tag_value = 'True'
-    cluster_name = get_cluster_name_with_tag(tag_key, tag_value)
-    services = list_cluster_services(cluster_name)
-
-    # Recupera as contagens de réplicas do DynamoDB
-    replica_counts = retrieve_replica_counts_from_dynamodb()
+    cluster_names = get_cluster_name_with_tag(tag_key, tag_value)
+    for name in cluster_names:
+        services = list_cluster_services(name)
+        # Recupera as contagens de réplicas do DynamoDB
+        replica_counts = retrieve_replica_counts_from_dynamodb()
+        
+        # Filtra as contagens de réplicas apenas para os serviços específicos
+        desired_count = {service: replica_counts.get(service, 0) for service in services}
     
-    # Filtra as contagens de réplicas apenas para os serviços específicos
-    desired_count = {service: replica_counts.get(service, 0) for service in services}
+        # Atualiza os serviços do ECS com as contagens de réplicas recuperadas
+        if desired_count:
+            update_ecs_services(name, desired_count)
+            for service, desired_count in desired_count.items():
+                print(f"O serviço '{service}' do cluster {name} foi atualizado para {desired_count} réplicas.")
+        else:
+            print("Não foram encontradas contagens de réplicas no DynamoDB para os serviços especificados.")
 
-    # Atualiza os serviços do ECS com as contagens de réplicas recuperadas
-    if desired_count:
-        update_ecs_services(cluster_name, desired_count)
-        for service, desired_count in desired_count.items():
-            print(f"Serviço '{service}' atualizado para {desired_count} réplicas.")
-    else:
-        print("Não foram encontradas contagens de réplicas no DynamoDB para os serviços especificados.")
