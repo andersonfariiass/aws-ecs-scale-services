@@ -1,0 +1,146 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  EcsServiceScaleup:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: ecs-service-scale-up.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: s3-unibs1001-vg
+        S3Key: ecs-service-scale-up.zip
+      Runtime: python3.11
+      Timeout: 30
+  EcsServiceScaledown:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: ecs-service-scale-down.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: s3-unibs1001-vg
+        S3Key: ecs-service-scale-down.zip
+      Runtime: python3.11
+      Timeout: 30
+  ECSStateServiceTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: ecs_state_services
+      AttributeDefinitions:
+        - AttributeName: name_services
+          AttributeType: S
+      KeySchema:
+        - AttributeName: name_services
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: LambdaDynamoDBPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:GetItem'
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:Scan'
+                Resource: !GetAtt ECSStateServiceTable.Arn
+        - PolicyName: LambdaECSPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ecs:UpdateService'
+                  - 'ecs:ListServices'
+                  - 'ecs:ListAttributes'
+                  - 'ecs:ListTasks'
+                  - 'ecs:DescribeServices'
+                  - 'ecs:DescribeClusters'
+                  - 'ecs:ListClusters'
+                Resource: '*'
+        - PolicyName: LambdaCWPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+
+  SchedulerUpExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: SchedulerUPExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 'lambda:InvokeFunction'
+                Resource: !GetAtt EcsServiceScaleup.Arn
+  SchedulerDownExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: SchedulerDownExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 'lambda:InvokeFunction'
+                Resource: !GetAtt EcsServiceScaledown.Arn
+
+  ScheduleStart:
+    Type: 'AWS::Scheduler::Schedule'
+    Properties:
+      Description: 'Schedule para acionamento da lambda para scale-up dos services do ECS'
+      Name: 'schedule-ecs-service-scale-up'
+      FlexibleTimeWindow:
+        #MaximumWindowInMinutes: 1
+        Mode: 'OFF'
+      ScheduleExpression: 'cron(0 7 * * ? *)' # Executar todos os dias às 8:00 UTC (horário pode ser ajustado conforme necessário)
+      State: 'ENABLED'
+      Target:
+        #Id: EcsServiceScaleup
+        RoleArn: !GetAtt SchedulerUpExecutionRole.Arn
+        Arn: !GetAtt EcsServiceScaleup.Arn
+
+  ScheduleStop:
+    Type: 'AWS::Scheduler::Schedule'
+    Properties:
+      Description: 'Schedule para acionamento da lambda para scale-down dos services do ECS'
+      Name: 'schedule-ecs-service-scale-down'
+      FlexibleTimeWindow:
+        #MaximumWindowInMinutes: 1
+        Mode: 'OFF'
+      ScheduleExpression: 'cron(0 20 * * ? *)' # Executar todos os dias às 20:00 UTC (horário pode ser ajustado conforme necessário)
+      State: 'ENABLED'
+      Target:
+        #Id: EcsServiceScaledown
+        RoleArn: !GetAtt SchedulerDownExecutionRole.Arn
+        Arn: !GetAtt EcsServiceScaledown.Arn
