@@ -1,8 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
-  EcsServiceScaleup:
+  servicescaleup:
     Type: 'AWS::Lambda::Function'
     Properties:
+      FunctionName: 'ecs-services-scale-up'
       Handler: ecs-service-scale-up.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
@@ -10,9 +11,10 @@ Resources:
         S3Key: ecs-service-scale-up.zip
       Runtime: python3.11
       Timeout: 30
-  EcsServiceScaledown:
+  servicescaledown:
     Type: 'AWS::Lambda::Function'
     Properties:
+      FunctionName: 'ecs-services-scale-down'
       Handler: ecs-service-scale-down.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
@@ -31,6 +33,9 @@ Resources:
         - AttributeName: name_services
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+      Tags:
+        - Key: 'Descricao'
+          Value: 'Tabela usada para armazenar informações para a solução de scale réplicas de serviços de clusters ECS'
   LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -95,7 +100,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'lambda:InvokeFunction'
-                Resource: !GetAtt EcsServiceScaleup.Arn
+                Resource: !GetAtt servicescaleup.Arn
   SchedulerDownExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -113,7 +118,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'lambda:InvokeFunction'
-                Resource: !GetAtt EcsServiceScaledown.Arn
+                Resource: !GetAtt servicescaledown.Arn
 
   ScheduleStart:
     Type: 'AWS::Scheduler::Schedule'
@@ -121,14 +126,12 @@ Resources:
       Description: 'Schedule para acionamento da lambda para scale-up dos services do ECS'
       Name: 'schedule-ecs-service-scale-up'
       FlexibleTimeWindow:
-        #MaximumWindowInMinutes: 1
         Mode: 'OFF'
       ScheduleExpression: 'cron(0 7 * * ? *)' # Executar todos os dias às 8:00 UTC (horário pode ser ajustado conforme necessário)
       State: 'ENABLED'
       Target:
-        #Id: EcsServiceScaleup
         RoleArn: !GetAtt SchedulerUpExecutionRole.Arn
-        Arn: !GetAtt EcsServiceScaleup.Arn
+        Arn: !GetAtt servicescaleup.Arn
 
   ScheduleStop:
     Type: 'AWS::Scheduler::Schedule'
@@ -136,11 +139,9 @@ Resources:
       Description: 'Schedule para acionamento da lambda para scale-down dos services do ECS'
       Name: 'schedule-ecs-service-scale-down'
       FlexibleTimeWindow:
-        #MaximumWindowInMinutes: 1
         Mode: 'OFF'
       ScheduleExpression: 'cron(0 20 * * ? *)' # Executar todos os dias às 20:00 UTC (horário pode ser ajustado conforme necessário)
       State: 'ENABLED'
       Target:
-        #Id: EcsServiceScaledown
         RoleArn: !GetAtt SchedulerDownExecutionRole.Arn
-        Arn: !GetAtt EcsServiceScaledown.Arn
+        Arn: !GetAtt servicescaledown.Arn
