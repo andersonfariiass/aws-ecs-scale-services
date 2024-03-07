@@ -15,7 +15,6 @@ def get_cluster_name_with_tag(tag_key, tag_value):
                 clusters=cluster_arns,
                 include=['TAGS']
             )
-            print(cluster_info)
             for cluster in cluster_info['clusters']:
                 name = cluster['clusterName']
                 cluster_tags = cluster.get('tags', [])
@@ -68,7 +67,7 @@ def update_ecs_services(cluster_name, service_desired_counts):
 
 def retrieve_replica_counts_from_dynamodb():
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('ecs_services')  # Substitua 'NomeDaTabela' pelo nome da sua tabela no DynamoDB
+    table = dynamodb.Table('ecs_state_services')  # Substitua 'NomeDaTabela' pelo nome da sua tabela no DynamoDB
 
     try:
         response = table.scan()
