@@ -48,4 +48,6 @@ Garanta que a Role usada nas lambdas tenha as seguintes permissões:
 - Tags ECS:
 Atribua as tags "Start=True" e "Stop=True" aos clusters ECS conforme necessário. Certifique-se de atribuir essas tags aos clusters ECS que você deseja controlar.
 
+## Implatação com cloudformation
+Para realizar a instalação de forma automatizado podemos usar o cloudformation para implatar a solução completa, o template do CF cf-ecs-sevices-scale.yaml. Para implatação devemos criar dois arquivos zip, um para cada script python e devemos fazer upload desses zip’s em um bucket S3 e depois ajustar o cloudformation com o nome do bucket e o nome do arquivo zip de cada lambda.
 
