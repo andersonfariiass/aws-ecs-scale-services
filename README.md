@@ -29,3 +29,6 @@ Certifique-se de que as funções Lambda tenham permissões adequadas para inter
 
 - Tags ECS:
 Atribua as tags "Start=True" e "Stop=True" aos clusters ECS conforme necessário. Certifique-se de atribuir essas tags aos clusters ECS que você deseja controlar.
+
+Fluxo para scale-down dos services:
+<img src="/images/ecs-services-scale-down.jpg">
