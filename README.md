@@ -33,17 +33,17 @@ A função deve verificar os clusters ECS com a tag "Start=True" e aumentar a ca
 - Permissões:
 Certifique-se de que as funções Lambda tenham permissões adequadas para interagir com os serviços ECS, o Amazon EventBridge e o DynamoDB.
 Garanta que a Role usada nas lambdas tenha as seguintes permissões:
-- 'dynamodb:PutItem'
-- 'dynamodb:GetItem'
-- 'dynamodb:UpdateItem'
-- 'dynamodb:Scan'
-- 'ecs:ListServices'
-- 'ecs:UpdateService'
-- 'ecs:ListAttributes'
-- 'ecs:ListTasks'
-- 'ecs:DescribeServices'
-- 'ecs:DescribeClusters'
-- 'ecs:ListClusters'
+    - 'dynamodb:PutItem'
+    - 'dynamodb:GetItem'
+    - 'dynamodb:UpdateItem'
+    - 'dynamodb:Scan'
+    - 'ecs:ListServices'
+    - 'ecs:UpdateService'
+    - 'ecs:ListAttributes'
+    - 'ecs:ListTasks'
+    - 'ecs:DescribeServices'
+    - 'ecs:DescribeClusters'
+    - 'ecs:ListClusters'
 
 - Tags ECS:
 Atribua as tags "Start=True" e "Stop=True" aos clusters ECS conforme necessário. Certifique-se de atribuir essas tags aos clusters ECS que você deseja controlar.
