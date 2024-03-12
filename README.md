@@ -31,7 +31,7 @@ A função deve verificar os clusters ECS com a tag "Start=True" e aumentar a ca
 - Defina regras no Amazon EventBridge para acionar as funções Lambda de acordo com uma programação definida. Configure as regras para acionar as funções Lambda nos horários desejados.
 
 - Permissões:
-Certifique-se de que as funções Lambda tenham permissões adequadas para interagir com os serviços ECS, o Amazon EventBridge e o DynamoDB.
+Certifique-se de que as funções Lambda tenham permissões adequadas para interagir com os serviços ECS, o Amazon EventBridge e o DynamoDB.<br />
 Garanta que a Role usada nas lambdas tenha as seguintes permissões:
     - 'dynamodb:PutItem'
     - 'dynamodb:GetItem'
