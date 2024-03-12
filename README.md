@@ -2,6 +2,12 @@
 Este projeto demonstra como usar AWS Lambda e Amazon EventBridge para agendar o aumento e a redução da capacidade dos serviços do Amazon ECS (Elastic Container Service) com launch type Fargate, baseando-se em tags específicas. Os serviços do ECS serão escalonados de acordo com as tags "Start=True" e "Stop=True" atribuídas aos clusters ECS.
 O Objetivo dessa solução é reduzir custos com clusters ECS não produtivos, onde não há a necessidade de ficarem disponiveis 24x7.
 
+Fluxo para scale-down dos services:
+<img src="/images/ecs-services-scale-down.jpg">
+
+Fluxo para scale-up dos services:
+<img src="/images/ecs-services-scale-up.jpg">
+
 ## Funcionamento
 
 Lambda ecs-services-scale-down:
@@ -26,12 +32,20 @@ A função deve verificar os clusters ECS com a tag "Start=True" e aumentar a ca
 
 - Permissões:
 Certifique-se de que as funções Lambda tenham permissões adequadas para interagir com os serviços ECS, o Amazon EventBridge e o DynamoDB.
+Garanta que a Role usada nas lambdas tenha as seguintes permissões:
+- 'dynamodb:PutItem'
+- 'dynamodb:GetItem'
+- 'dynamodb:UpdateItem'
+- 'dynamodb:Scan'
+- 'ecs:ListServices'
+- 'ecs:UpdateService'
+- 'ecs:ListAttributes'
+- 'ecs:ListTasks'
+- 'ecs:DescribeServices'
+- 'ecs:DescribeClusters'
+- 'ecs:ListClusters'
 
 - Tags ECS:
 Atribua as tags "Start=True" e "Stop=True" aos clusters ECS conforme necessário. Certifique-se de atribuir essas tags aos clusters ECS que você deseja controlar.
 
-Fluxo para scale-down dos services:
-<img src="/images/ecs-services-scale-down.jpg">
 
-Fluxo para scale-up dos services:
-<img src="/images/ecs-services-scale-up.jpg">
