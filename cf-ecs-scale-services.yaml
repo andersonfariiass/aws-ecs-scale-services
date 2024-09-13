@@ -7,7 +7,7 @@ Resources:
       Handler: ecs-service-scale-up.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
-        S3Bucket: s3-unibs1001-vg
+        S3Bucket: MyBucket
         S3Key: ecs-service-scale-up.zip
       Runtime: python3.11
       Timeout: 30
@@ -18,7 +18,7 @@ Resources:
       Handler: ecs-service-scale-down.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
-        S3Bucket: s3-unibs1001-vg
+        S3Bucket: MyBucket
         S3Key: ecs-service-scale-down.zip
       Runtime: python3.11
       Timeout: 30
