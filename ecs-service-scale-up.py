@@ -45,7 +45,8 @@ def list_cluster_services(cluster_name):
         for page in response_iterator:
             service_arns = page['serviceArns']
             for arn in service_arns:
-                service_name = arn.split('/')[-1]  # Extrai o nome do serviço do ARN
+                # Extrai o nome do serviço do ARN
+                service_name = arn.split('/')[-1]  
                 service_names.append(service_name)
                 
         return service_names
@@ -57,7 +58,7 @@ def update_ecs_services(cluster_name, service_desired_counts):
     ecs_client = boto3.client('ecs')
 
     for service, desired_count in service_desired_counts.items():
-        # Convertendo desired_count para int
+        # Converte desired_count para int
         desired_count = int(desired_count)
         response = ecs_client.update_service(
             cluster=cluster_name,
@@ -67,7 +68,7 @@ def update_ecs_services(cluster_name, service_desired_counts):
 
 def retrieve_replica_counts_from_dynamodb():
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('ecs_state_services')  # Substitua 'NomeDaTabela' pelo nome da sua tabela no DynamoDB
+    table = dynamodb.Table('ecs_state_services')
 
     try:
         response = table.scan()

@@ -127,7 +127,7 @@ Resources:
       Name: 'schedule-ecs-service-scale-up'
       FlexibleTimeWindow:
         Mode: 'OFF'
-      ScheduleExpression: 'cron(0 7 * * ? *)' # Executar todos os dias às 8:00 UTC (horário pode ser ajustado conforme necessário)
+      ScheduleExpression: 'cron(0 7 * * ? *)'
       State: 'ENABLED'
       Target:
         RoleArn: !GetAtt SchedulerUpExecutionRole.Arn
@@ -140,7 +140,7 @@ Resources:
       Name: 'schedule-ecs-service-scale-down'
       FlexibleTimeWindow:
         Mode: 'OFF'
-      ScheduleExpression: 'cron(0 20 * * ? *)' # Executar todos os dias às 20:00 UTC (horário pode ser ajustado conforme necessário)
+      ScheduleExpression: 'cron(0 20 * * ? *)'
       State: 'ENABLED'
       Target:
         RoleArn: !GetAtt SchedulerDownExecutionRole.Arn

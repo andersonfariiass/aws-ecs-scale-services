@@ -49,7 +49,7 @@ def list_cluster_services(cluster_name):
 
 def store_replica_counts_in_dynamodb(replica_counts, cluster_name):
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('ecs_state_services')  # Substitua 'NomeDaTabela' pelo nome da sua tabela no DynamoDB
+    table = dynamodb.Table('ecs_state_services') 
 
     try:
         for service, count in replica_counts.items():
@@ -118,6 +118,3 @@ def lambda_handler(event, context):
                 print("Falha ao armazenar informações no DynamoDB, o update service não pode ser executado")
         else:
             print("Não foi possível obter as contagens de réplicas dos serviços.")
-
-        # Atualiza os serviços do ECS com a contagem desejada
-        #update_ecs_services(name, services, desired_count)
