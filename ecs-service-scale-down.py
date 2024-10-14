@@ -69,17 +69,29 @@ def store_replica_counts_in_dynamodb(replica_counts, cluster_name):
 def get_ecs_service_replica_count(cluster_name, services):
     ecs_client = boto3.client('ecs')
     
+    # try:
+    #     replica_counts = {}
+    #     response = ecs_client.describe_services(
+    #         cluster=cluster_name,
+    #         services=services
+    #     )
+    #     for service in response['services']:
+    #         service_name = service['serviceName']
+    #         running_count = service['runningCount']
+    #         replica_counts[service_name] = running_count
+    #     return replica_counts
     try:
-        replica_counts = {}
+    replica_counts = {}
+    for service in services:
         response = ecs_client.describe_services(
             cluster=cluster_name,
-            services=services
+            services=[service]
         )
-        for service in response['services']:
-            service_name = service['serviceName']
-            running_count = service['runningCount']
-            replica_counts[service_name] = running_count
-        return replica_counts
+        current_service = response['services'][0]
+        service_name = current_service['serviceName']
+        running_count = current_service['runningCount']
+        replica_counts[service_name] = running_count
+    return replica_counts
     except Exception as e:
         return f"Error: {str(e)}"
 
